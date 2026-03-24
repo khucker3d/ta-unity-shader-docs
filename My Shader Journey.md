@@ -7,6 +7,10 @@ My journey with shader programming began in late 2014 through online tutorials. 
 ### Intro To Shaders: 
 - What is a shader: https://github.com/khucker3d/ta-unity-shader-docs/blob/main/Intro/What%20is%20a%20shader.md
 - Shader pipeline: https://github.com/khucker3d/ta-unity-shader-docs/blob/main/Intro/Shader%20Pipeline%20Overview.md
-- HLSL & Cg:
+- HLSL Vs. Cg:
   - https://github.com/khucker3d/ta-unity-shader-docs/blob/main/Intro/Shaderlab%20-%20HLSL%20%26%20CG.md
   - https://github.com/khucker3d/ta-unity-shader-docs/blob/main/Intro/Why%20%22CG%22%20if%20it's%20HLSL.md
+
+### Shader Breakdowns:
+- Cg https://github.com/khucker3d/ta-unity-shader-docs/blob/main/Breakdowns/ShaderLab%20%26%20Cg%20Breakdown.md
+- HLSL https://github.com/khucker3d/ta-unity-shader-docs/blob/main/Breakdowns/ShaderLab%20%26%20Standard%20PBR%20HLSL%20Breakdown.md
