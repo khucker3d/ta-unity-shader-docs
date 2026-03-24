@@ -27,9 +27,23 @@ A technical artist breakdown of Unity’s UI/Default shader, explaining how Shad
 
 ### Properties: 
 Properties are stored as part of the material asset. These are generally exposed in the material component for artists to create, edit, and share materials with different configurations.
+```
+Properties
+    {
+        [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
+        _Color ("Tint", Color) = (1,1,1,1)
 
-<img width="670" height="338" alt="_Color (Tint, Color) (1,1,1,1)-20240917-153838" src="https://github.com/user-attachments/assets/5eccf0f5-f135-4c83-83b9-77fd0c77b90c" />
+        _StencilComp ("Stencil Comparison", Float) = 8
+        _Stencil ("Stencil ID", Float) = 0
+        _StencilOp ("Stencil Operation", Float) = 0
+        _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        _StencilReadMask ("Stencil Read Mask", Float) = 255
 
+        _ColorMask ("Color Mask", Float) = 15
+
+        [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
+    }
+```
 ---
 
 ### Subshader:
@@ -37,26 +51,66 @@ SubShaders allow you to define different GPU settings and shader programs for di
 
 #### Subshader includes: 
 - **Tags:** Predefined keys and values to determine how and when to use a given SubShader
-
-  <img width="354" height="194" alt="Queue=Transparent-20240917-153838" src="https://github.com/user-attachments/assets/6e76c6c2-1e24-44f6-a6d1-4b106acebcae" />
+```
+  Tags
+        {
+            "Queue"="Transparent"
+            "IgnoreProjector"="True"
+            "RenderType"="Transparent"
+            "PreviewType"="Plane"
+            "CanUseSpriteAtlas"="True"
+        }
+```
 
 - **Stencil:** Command to configure the stencil test, and to configure what the GPU writes to the stencil buffer
-
-  <img width="348" height="199" alt="Stencil-20240917-153838" src="https://github.com/user-attachments/assets/9984d725-7d3c-46dd-8576-a70f98ab3741" />
+```
+Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+```
 
 - **Render State Commands:** Sets the render state for that Pass, or within a SubShader block for that SubShader and Passes
-
-  <img width="363" height="166" alt="Cull Off-20240917-153838" src="https://github.com/user-attachments/assets/8c08e839-6c9a-44c2-a5f6-ef96a56792ae" />
+```
+        Cull Off
+        Lighting Off
+        ZWrite Off
+        ZTest [unity_GUIZTestMode]
+        Blend SrcAlpha OneMinusSrcAlpha
+        ColorMask [_ColorMask]
+```
  
 ---
 
 ### Pass:
 A Pass is the fundamental element of a Shader object. It contains instructions for setting the state of the GPU, and the shader programs that run on the GPU.
+```
+Pass
+        {
+            Name "Default"
+        CGPROGRAM
+            // Logic here
+        ENDCG
+        }
+```
 
 #### Pass includes: 
 - **Preprocessor Directives:** Fundamental elements of a Shader object that contain instructions for setting the GPU state, and shader programs that run on the GPU
+```
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 2.0
 
-  <img width="562" height="253" alt="CGPROGRAM-20240917-153838" src="https://github.com/user-attachments/assets/47700583-555a-40b9-bb98-6973754189ca" />
+            #include "UnityCG.cginc"
+            #include "UnityUI.cginc"
+
+            #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
+            #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
+```
   
   - **Common directives found in UI shaders:**
     - Shader Programs 
@@ -66,29 +120,58 @@ A Pass is the fundamental element of a Shader object. It contains instructions f
     - GPU Instancing (UI shaders)
 
 - **Structs** (Vertex & Fragment): Defines a new type of variable representing a set of other variables with native or compound types.
+```
+            struct appdata_t
+            {
+                float4 vertex   : POSITION;
+                float4 color    : COLOR;
+                float2 texcoord : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
 
-  <img width="352" height="361" alt="struct appdata_t-20240917-153838" src="https://github.com/user-attachments/assets/c23aa8bb-1cd3-442b-8a65-30bb24b88761" />
+            struct v2f
+            {
+                float4 vertex   : SV_POSITION;
+                fixed4 color    : COLOR;
+                float2 texcoord  : TEXCOORD0;
+                float4 worldPosition : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+```
 
 - **Declared Cg/HLSL variables:** Shader declares Material properties in a Properties block
-
-  <img width="233" height="135" alt="fixed4 _Color;-20240917-153838" src="https://github.com/user-attachments/assets/9764b7f2-0f48-42d3-94bd-3aa50d009dba" />
+```
+            sampler2D _MainTex;
+            fixed4 _Color;
+            fixed4 _TextureSampleAdd;
+            float4 _ClipRect;
+            float4 _MainTex_ST;
+```
 
 ---
 
 ### Shaders: 
 **Vertex Shader:** Shader program that runs on each vertex 
-
-<img width="490" height="296" alt="v2f vert(appdata_t v)-20240917-153838" src="https://github.com/user-attachments/assets/28ab3801-77ab-48b8-88b2-67ae8b5761a5" />
-
 **Logic:** 
 - Transform vertex position from object space into “clip space”- used by the GPU to rasterize the object on screen. 
 - Pass the input texture coordinate unmodified - we’ll need it to sample the texture in the fragment shader.
+```
+            v2f vert(appdata_t v)
+            {
+                v2f OUT;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
+                OUT.worldPosition = v.vertex;
+                OUT.vertex = UnityObjectToClipPos(OUT.worldPosition);
 
+                OUT.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
+
+                OUT.color = v.color * _Color;
+                return OUT;
+            }
+```
 
 **Fragment (AKA Pixel) Shader:** Shader program that runs on every pixel
-
-<img width="665" height="300" alt="Screenshot 2024-08-19 at 07 59 04-20240917-153838" src="https://github.com/user-attachments/assets/c4ea9aee-c043-4998-8da1-c060aa6e4533" />
-
 **Logic:**
 - Outputs a color
 - Has an SV_Target semantic
@@ -96,12 +179,19 @@ A Pass is the fundamental element of a Shader object. It contains instructions f
 
 _**Tip:** Optimizing fragment shaders is important to ensure overall game performance_
 
- 
-### Fallback shader: 
-If the hardware’s graphics card doesn't support something in the shader code’s subshader, a fallback shader can be assigned to provide a backup shader that Unity will automatically use if the primary shader isn't supported. 
+```
+            fixed4 frag(v2f IN) : SV_Target
+            {
+                half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
 
-<img width="489" height="311" alt="Screenshot 2025-05-01 at 08 32 23" src="https://github.com/user-attachments/assets/19dfe749-6c74-4d59-bb3d-cf8ca4c183d3" />
+                #ifdef UNITY_UI_CLIP_RECT
+                color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
+                #endif
 
-_**Tip:** Use a Unity shader type that matches the target hardware’s performance needs. Or an alternative version of your custom shader, which has been successfully tested to render on the low-end target hardware._
+                #ifdef UNITY_UI_ALPHACLIP
+                clip (color.a - 0.001);
+                #endif
 
-_**Note:** For custom UI shaders, I commonly will use Fallback “UI/Default”_
+                return color;
+            }
+```
