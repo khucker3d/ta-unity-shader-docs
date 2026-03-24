@@ -1,4 +1,4 @@
-# Tech Art: Shaders - What Are They 
+# Tech Art: Shaders - What is a shader
 By Kellie Hucker
 
 
