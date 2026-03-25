@@ -93,7 +93,11 @@ Pass
         {
             Name "Default"
         CGPROGRAM
-            // Logic here
+            // Preprocessor Directives
+            // Common directives
+            // Structs
+            // Declared variables
+            // Shaders (Vert & Frag)
         ENDCG
         }
 ```
@@ -123,16 +127,16 @@ Pass
 ```
             struct appdata_t
             {
-                float4 vertex   : POSITION;
-                float4 color    : COLOR;
+                float4 vertex : POSITION;
+                float4 color : COLOR;
                 float2 texcoord : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
             {
-                float4 vertex   : SV_POSITION;
-                fixed4 color    : COLOR;
+                float4 vertex : SV_POSITION;
+                fixed4 color : COLOR;
                 float2 texcoord  : TEXCOORD0;
                 float4 worldPosition : TEXCOORD1;
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -197,7 +201,7 @@ _**Tip:** Optimizing fragment shaders is important to ensure overall game perfor
 ```
 
 
-## The 
+## Standard UI Shader Example
  ```
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 
