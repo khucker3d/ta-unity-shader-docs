@@ -10,7 +10,7 @@ My journey with shader programming began in late 2014 through online tutorials. 
 ---
 
 ## Shader Doc Examples:
-_**Note:** I have a more extensive documentation in my personal Confluence account._ 
+_**Note:** A more detailed version of this documentation is maintained in my personal Confluence. This repository provides a public-facing example._ 
 
 ### Intro To Shaders: 
 - What is a shader: https://github.com/khucker3d/ta-unity-shader-docs/blob/main/Intro/What%20is%20a%20shader.md
